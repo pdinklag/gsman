@@ -1,0 +1,4 @@
+__pycache__
+data/*
+servers/*
+!servers/__init__.py
