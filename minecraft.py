@@ -16,20 +16,29 @@ class MinecraftServer(gs.GameServer):
     def shutdown(self, msg):
         if len(self.rcon) > 0:
             # RCON available - do it nicely
-            # Give players a countdown
-            msg = msg if len(msg) > 0 else 'Server maintenance shutdown'
-            countdown = self.shutdown_time
-            while countdown > 0:
-                subprocess.Popen(self.rcon + [
-                    'title @a title {"text":"'
-                        + str(countdown) + '"}'
-                ])
-                subprocess.Popen(self.rcon + [
-                    'title @a subtitle {"color":"red","text":"'
-                        + str(msg) + '"}'
-                ])
-                time.sleep(1)
-                countdown -= 1
+
+            # Test if there are any players online
+            result = subprocess.Popen(self.rcon + ['list'],
+                stdout=subprocess.PIPE)
+
+            out, _ = result.communicate()
+            if out.decode().startswith('There are 0'):
+                print(self.id + ': no players online, stopping right away')
+            else:
+                # Give players a countdown
+                msg = msg if len(msg) > 0 else 'Server maintenance shutdown'
+                countdown = self.shutdown_time
+                while countdown > 0:
+                    subprocess.Popen(self.rcon + [
+                        'title @a title {"text":"'
+                            + str(countdown) + '"}'
+                    ])
+                    subprocess.Popen(self.rcon + [
+                        'title @a subtitle {"color":"red","text":"'
+                            + str(msg) + '"}'
+                    ])
+                    time.sleep(1)
+                    countdown -= 1
 
             # Stop server
             subprocess.Popen(self.rcon + ['stop'])
